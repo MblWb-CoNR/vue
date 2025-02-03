@@ -118,7 +118,7 @@ Vue.component('product-review', {
     template: `
        <form class="review-form" @submit.prevent="onSubmit">
        <p v-if="errors.length">
-             <b>Please correct the following error(s):</b>
+             <p>Исправьте текущие ошибки:</p>
              <ul>
                <li v-for="error in errors">{{ error }}</li>
              </ul>
@@ -145,14 +145,13 @@ Vue.component('product-review', {
          <p>
            <label class="rec">Смогли бы вы порекоментовать этот товар?</label>
            <input type="radio" id="rec" name="drone" value="Да" v-model="recommended">
-           <label for="rec">Yes</label>
+           <label for="rec">Да</label>
            <input type="radio" id="not_rec" name="drone" value="Нет" v-model="recommended">
-           <label for="not_rec">Yesn't</label>
+           <label for="not_rec">Нет</label>
          </p>
          <p>
-           <input type="submit" value="Submit"> 
+           <input type="submit"> 
          </p>
-    
         </form>
         
         
@@ -179,14 +178,11 @@ Vue.component('product-review', {
                 this.review = null
                 this.rating = null
             } else {
-                if(!this.name) this.errors.push("Name required.")
-                if(!this.review) this.errors.push("Review required.")
-                if(!this.rating) this.errors.push("Rating required.")
+                if(!this.name) this.errors.push("Имя обязательно.")
+                if(!this.review) this.errors.push("Отзыв обязателен.")
+                if(!this.rating) this.errors.push("Рейтинг обязателен.")
             }
-
         },
-
-
     }
 
 })
