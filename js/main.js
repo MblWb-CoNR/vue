@@ -1,3 +1,6 @@
+let eventBus = new Vue()
+
+
 Vue.component('product-review', {
     template: `
        <form class="review-form" @submit.prevent="onSubmit">
@@ -57,7 +60,7 @@ Vue.component('product-review', {
                     review: this.review,
                     rating: this.rating
                 }
-                this.$emit('review-submitted', productReview)
+                eventBus.$emit('review-submitted', productReview)
                 this.name = null
                 this.review = null
                 this.rating = null
@@ -92,10 +95,6 @@ Vue.component('product', {
            <span class="sale">{{ sale }}</span>
            <p v-if="inStock" >В наличии</p>
            <p v-else :class="{ OutOfStock:!inStock }">Нет в наличии</p>
-           <p>Доставка: {{ shipping }}</p>
-           <ul>
-               <li v-for="detail in details">{{ detail }}</li>
-           </ul>
            <div
                    class="color-box"
                    v-for="(variant, index) in variants"
@@ -120,17 +119,7 @@ Vue.component('product', {
            </button>
            <a v-bind:href="link">Похожее</a>    
        </div>           
-       <div>
-            <h2>Reviews</h2>
-            <p v-if="!reviews.length">Отзывов нет.</p>
-            <ul>
-              <li v-for="review in reviews">
-              <p>{{ review.name }}</p>
-              <p>Рейтинг: {{ review.rating }}</p>
-              <p>{{ review.review }}</p>
-              </li>
-            </ul>
-           </div> <product-review @review-submitted="addReview"></product-review>
+           <product-tabs :reviews="reviews"></product-tabs>
        </div>
  `,
     data() {
@@ -142,7 +131,6 @@ Vue.component('product', {
             altText: "Socks",
             link: "https://www.ozon.ru/category/odezhda-obuv-i-aksessuary-7500/?text=%D0%BD%D0%BE%D1%81%D0%BA%D0%B8&clid=11468697-1",
             onSale: false,
-            details: ['80% хлопок', '20% полиэстер', 'Унисекс'],
             variants: [
                 {
                     variantId: 2234,
@@ -174,7 +162,13 @@ Vue.component('product', {
         },
         addReview(productReview) {
             this.reviews.push(productReview)
+        },
+        mounted() {
+            eventBus.$on('review-submitted', productReview => {
+                this.reviews.push(productReview)
+            })
         }
+
     },
     computed: {
         title() {
@@ -199,9 +193,78 @@ Vue.component('product', {
     }
 })
 
+Vue.component('product-tabs', {
+    template: `
+     <div>   
+       <ul>
+         <span class="tab"
+               :class="{ activeTab: selectedTab === tab }"
+               v-for="(tab, index) in tabs"
+               @click="selectedTab = tab"
+         >{{ tab }}</span>
+       </ul>
+       <div v-show="selectedTab === 'Отзывы'">
+         <p v-if="!reviews.length">Нет отзывов.</p>
+         <ul>
+           <li v-for="review in reviews">
+           <p>{{ review.name }}</p>
+           <p>Rating: {{ review.rating }}</p>
+           <p>{{ review.review }}</p>
+           </li>
+         </ul>
+       </div> 
+       <div v-show="selectedTab === 'Оставить отзыв'">
+         <product-review></product-review>
+     </div>
+     <div v-show="selectedTab === 'Доставка'">
+        <product-del></product-del>
+    </div>
+    <div v-show="selectedTab === 'Детали'">
+        <product-detail></product-detail>
+    </div>
+     </div>
+`,
+    props: {
+        reviews: {
+            type: Array,
+            required: false
+        }
+    },
+    data() {
+        return {
+            tabs: ['Отзывы', 'Оставить отзыв', 'Доставка', 'Детали'],
+            selectedTab: 'Отзывы'
+        }
+    }
+})
 
+Vue.component('product-detail', {
+    template:`
+    <ul>
+        <li v-for="detail in details">{{ detail }}</li>
+    </ul>`,
+    data () {
+        return {
+            details: ['80% хлопок', '20% полиэстер', 'Унисекс'],
+        }
+    }
+})
 
-
+Vue.component('product-del', {
+    template:`
+    <p>Доставка: {{ shipping }}</p>`,
+    data () {
+    },
+    computed: {
+        shipping() {
+            if (this.premium) {
+                return "Бесплатно";
+            } else {
+                return "50₽"
+            }
+        }
+    }
+})
 
 let app = new Vue({
     el: '#app',

@@ -69,7 +69,9 @@ button {
     font-size: 14px;
     border-radius: 5px;
     margin-bottom: 10px;
-
+}
+button:hover {
+    background-color: lightblue;
 }
 
 .disabledButton {
