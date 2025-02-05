@@ -77,7 +77,7 @@ Vue.component('product-review', {
 
 
 Vue.component('product', {
-        props: {
+    props: {
         premium: {
             type: Boolean,
             required: true
@@ -95,15 +95,22 @@ Vue.component('product', {
            <span class="sale">{{ sale }}</span>
            <p v-if="inStock" >В наличии</p>
            <p v-else :class="{ OutOfStock:!inStock }">Нет в наличии</p>
+           <p v-if="errors.length">
+                <b>Исправьте текущие ошибки:</b>
+                <ul>
+                    <li v-for="error in errors">{{ error }}</li>
+                </ul>
+           </p>
            <div
                    class="color-box"
                    v-for="(variant, index) in variants"
                    :key="variant.variantId"
                    :style="{ backgroundColor:variant.variantColor }"
-                   @mouseover="updateProduct(index)"
+                   @click="updateProduct(index)"
            ></div>
-           <select>
-                <option v-for="size in sizes">{{size}}</option>
+           <select v-model="selectedSize">
+                <option value="">Выберите размер</option>
+                <option v-for="size in sizes" :value="size">{{size}}</option>
             </select>
            <button
                    v-on:click="addToCart"
@@ -117,6 +124,7 @@ Vue.component('product', {
            >
                Удалить из корзины
            </button>
+           <br>
            <a v-bind:href="link">Похожее</a>    
        </div>           
            <product-tabs :reviews="reviews"></product-tabs>
@@ -128,6 +136,7 @@ Vue.component('product', {
             brand: 'Vue Mastery',
             description: "Пара теплых, пушистых носков",
             selectedVariant: 0,
+            selectedSize: '',
             altText: "Socks",
             link: "https://www.ozon.ru/category/odezhda-obuv-i-aksessuary-7500/?text=%D0%BD%D0%BE%D1%81%D0%BA%D0%B8&clid=11468697-1",
             onSale: false,
@@ -142,21 +151,30 @@ Vue.component('product', {
                     variantId: 2235,
                     variantColor: 'blue',
                     variantImage: "./assets/vmSocks-blue-onWhite.jpg",
-                    variantQuantity: 0
+                    variantQuantity: 20
                 }
             ],
             sizes: ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
-            reviews: []
+            reviews: [],
+            errors: []
         }
     },
     methods: {
         addToCart() {
-            this.$emit('add-to-cart', this.variants[this.selectedVariant].variantId);
+            this.errors = [];
+            if (this.selectedSize === '') {
+                this.errors.push("Выберите размер.");
+            }
+            if (this.selectedVariant === null) {
+                this.errors.push("Выберите цвет.");
+            }
+            if (this.errors.length === 0) {
+                this.$emit('add-to-cart', this.variants[this.selectedVariant].variantId);
+            }
         },
         removeFromCart(index) {
-            this.$emit('remove-from-cart',
-            this.variants[this.selectedVariant].variantId);
-         },
+            this.$emit('remove-from-cart', this.variants[this.selectedVariant].variantId);
+        },
         updateProduct(index) {
             this.selectedVariant = index;
         },
@@ -168,7 +186,6 @@ Vue.component('product', {
                 this.reviews.push(productReview)
             })
         }
-
     },
     computed: {
         title() {
@@ -182,7 +199,7 @@ Vue.component('product', {
         },
         sale(){
             return this.onSale ? (`${this.brand} ${this.product} Скидка!`) : (`${this.brand} ${this.product} без скидки.`);
-         },
+        },
         shipping() {
             if (this.premium) {
                 return "Бесплатно";
